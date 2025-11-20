@@ -1,65 +1,83 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
 
 export default function Home() {
+  const [message, setMessage] = useState("")
+  const [reply, setReply] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleSend = async () => {
+    if (!message.trim || loading) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!res.ok) {
+        setReply("エラーが発生しました。");
+        return;
+      }
+
+      const data = await res.json();
+      setReply(data.reply ?? "（返答なし）");
+
+    } catch (e) {
+      console.error(e);
+      setReply("通信エラーが発生しました。");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pl-5">
+      <div>
+        <header>
+          <h1 className="text-3xl font-bold underline">AI memo</h1>
+          <p>test</p>
+        </header>
+        <main className="lex-1 space-y-6">
+          <section>
+            <h2>メッセージ入力</h2>
+            <textarea placeholder="AIに聞きたいこと・相談したいことを書いてみてください。"
+              onKeyDown={handleKeyDown} value={message} onChange={(e) => setMessage(e.target.value)} />
+            <div>
+              <button type="button"
+                onClick={handleSend}
+                disabled={loading || !message.trim()}
+                className={`ounded-lg px-4 py-1.5 text-xs font-medium text-white transition
+              ${loading || !message.trim()
+                    ? "cursor-not-allowed bg-slate-300"
+                    : "bg-blue-600 hover:bg-blue-500"
+                  }`}>{loading ? "送信中…" : "送信"}</button>
+            </div>
+          </section>
+
+          <section className="flex-1 rounded-xl bg-white p-4 shadow-sm shadow-slate-200">
+            <h2 className="mb-2 text-sm font-medium text-slate-700">
+              AIの返答
+            </h2>
+            <div className="min-h-[120px] whitespace-pre-wrap rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+              {reply
+                ? reply
+                : "まだメッセージは送っていません。上のテキストエリアに入力して「送信」を押すと、ここにAIの返答が表示されます。"}
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

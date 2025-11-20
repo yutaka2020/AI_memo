@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 export async function POST(req: Request) {
     try {
@@ -11,14 +11,22 @@ export async function POST(req: Request) {
                 { status: 500 });
         }
 
-        const ai = new GoogleGenerativeAI(API_KEY);
-        const { prompt } = await req.json();
-        const model = ai.getGenerativeModel({
-            model: "gemini-2.5-flash",
-        })
+        const { messages } = await req.json();
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
+        const ai = new GoogleGenAI({
+            apiKey: API_KEY!,
+        });
+
+        const contents = messages.map((m: any) => ({
+            role: m.role,
+            parts: [{ text: m.text }],
+        }));
+
+        const result = await ai.models.generateContent({
+            model: 'gemini-2.5-flash', // 使用したいモデルを指定
+            contents: contents,         // 作成した contents 配列を渡す
+        });
+        const text = result.text;
 
         return NextResponse.json({ reply: text });
     } catch (error) {

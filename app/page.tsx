@@ -6,6 +6,7 @@ export default function Home() {
   const [messages, setMessages] = useState<
     { role: "user" | "assistant"; text: string }[]
   >([]);
+  const [memo, setMemo] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -29,21 +30,24 @@ export default function Home() {
     const aiMessage = { role: "assistant" as const, text: data.reply };
 
     setMessages((prev) => [...prev, aiMessage]);
+    setMemo(data.memo)
     setLoading(false);
+
+    console.log("API Response:", data);
+
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <main className="flex-1 max-w-2xl w-full mx-auto pt-10 px-4 space-y-4">
-
-        {/* チャットログ */}
-        <div className="space-y-3">
+    <div className="flex min-h-screen">
+      {/* 左：チャット */}
+      <div className="flex-1 border-r p-4 flex flex-col">
+        <div className="flex-1 space-y-3 overflow-y-auto">
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${m.role === "user"
+              className={`max-w-[70%] rounded px-3 py-2 ${m.role === "user"
                 ? "ml-auto bg-blue-600 text-white"
-                : "mr-auto bg-white border border-slate-200 text-gray-800"
+                : "mr-auto bg-gray-200"
                 }`}
             >
               {m.text}
@@ -51,31 +55,36 @@ export default function Home() {
           ))}
 
           {loading && (
-            <div className="mr-auto bg-white border border-slate-200 max-w-[80%] rounded-lg px-3 py-2 text-sm text-slate-500">
+            <div className="mr-auto bg-gray-200 px-3 py-2 rounded">
               …
             </div>
           )}
         </div>
 
-        {/* 入力フォーム */}
-        <div className="flex gap-2 border-black">
+        <div className="mt-4 flex gap-2">
           <textarea
             rows={2}
-            className="flex-1 border border-slate-300 rounded-lg p-2 text-sm text-black"
+            className="flex-1 border rounded p-2"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="メッセージを入力"
           />
 
           <button
-            className={`px-4 py-2 rounded-lg text-white text-sm ${loading ? "bg-slate-400" : "bg-blue-600 hover:bg-blue-500"
-              }`}
             onClick={sendMessage}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
             送信
           </button>
         </div>
-      </main>
+      </div>
+
+      {/* 右：メモ */}
+      <div className="w-80 p-4 bg-gray-50">
+        <h2 className="text-lg font-bold mb-2">メモ</h2>
+        <p className="whitespace-pre-wrap text-sm text-gray-800">
+          {memo || "まだメモはありません"}
+        </p>
+      </div>
     </div>
   );
 }

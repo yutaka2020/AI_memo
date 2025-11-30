@@ -12,6 +12,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [memoTree, setMemoTree] = useState<MemoNode[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedBody, setSelectedBody] = useState("");
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -46,7 +48,7 @@ export default function Home() {
 
     setMemoTree((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), title, children: [] }
+      { id: crypto.randomUUID(), title, body: "", children: [] }
     ]);
   };
 
@@ -61,7 +63,7 @@ export default function Home() {
             ...node,
             children: [
               ...node.children,
-              { id: crypto.randomUUID(), title, children: [] }
+              { id: crypto.randomUUID(), title, body: "", children: [] }
             ]
           };
         }
@@ -89,6 +91,37 @@ export default function Home() {
     setMemoTree((prev) => updateRecursive(prev));
   };
 
+  const findNodeById = (
+    nodes: MemoNode[],
+    id: string | null
+  ): MemoNode | null => {
+    if (!id) return null;
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      const found = findNodeById(node.children, id);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const handleSelectNode = (id: string) => {
+    setSelectedNodeId(id);
+    const node = findNodeById(memoTree, id);
+    setSelectedBody(node?.body ?? "");
+  };
+
+  const updateNodeBody = (id: string, body: string) => {
+    const updateRecursive = (nodes: MemoNode[]): MemoNode[] =>
+      nodes.map((node) =>
+        node.id === id
+          ? { ...node, body }
+          : { ...node, children: updateRecursive(node.children) }
+      );
+
+    setMemoTree((prev) => updateRecursive(prev));
+  };
+
+  const selectedNode = findNodeById(memoTree, selectedNodeId);
 
   return (
     <div className="flex min-h-screen">
@@ -146,8 +179,34 @@ export default function Home() {
           nodes={memoTree}
           onAddChild={addChildNode}
           onEdit={editNode}
+          onSelect={handleSelectNode}
         />
       </div>
+      {selectedNode && (
+        <div className="fixed right-0 top-0 w-96 h-full bg-white shadow-lg border-l p-4 animate-slide-in">
+          <button
+            className="text-sm text-gray-500 mb-4"
+            onClick={() => setSelectedNodeId(null)}
+          >
+            閉じる
+          </button>
+
+          <h2 className="text-xl font-bold mb-2 text-gray-600">{selectedNode.title}</h2>
+
+          <textarea
+            className="w-full min-h-[300px] bg-white/70 backdrop-blur-lg rounded-2xl p-4 shadow-md border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none text-gray-600"
+            rows={12}
+            value={selectedBody}
+            onChange={(e) => setSelectedBody(e.target.value)}
+            onBlur={() => updateNodeBody(selectedNode.id, selectedBody)}
+          />
+
+
+          <p className="text-sm text-gray-600">ここに詳細を追加できます。</p>
+
+        </div>
+      )}
+
     </div>
   );
 }

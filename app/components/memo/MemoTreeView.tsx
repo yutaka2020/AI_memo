@@ -1,10 +1,16 @@
 "use client";
 import { MemoNode } from "@/app/lib/types/memo";
 
-export function MemoTreeView({ nodes, onAddChild, onEdit }: {
+export function MemoTreeView({
+  nodes,
+  onAddChild,
+  onEdit,
+  onSelect,
+}: {
   nodes: MemoNode[];
   onAddChild: (id: string) => void;
   onEdit: (id: string) => void;
+  onSelect: (id: string) => void;
 }) {
   return (
     <ul className="ml-2 space-y-1">
@@ -12,8 +18,8 @@ export function MemoTreeView({ nodes, onAddChild, onEdit }: {
         <li key={node.id}>
           <div className="flex items-center gap-2">
             <span
-              className="cursor-pointer bg-gray-700 px-2 py-1 rounded"
-              onDoubleClick={() => onEdit(node.id)}
+              className="cursor-pointer bg-gray-800 px-2 py-1 rounded"
+              onDoubleClick={() => onSelect(node.id)}
             >
               {node.title}
             </span>
@@ -31,6 +37,7 @@ export function MemoTreeView({ nodes, onAddChild, onEdit }: {
               nodes={node.children}
               onAddChild={onAddChild}
               onEdit={onEdit}
+              onSelect={onSelect}
             />
           )}
         </li>

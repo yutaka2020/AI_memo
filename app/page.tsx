@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MemoNode } from "@/app/lib/types/memo";
 import { MemoTreeView } from "@/app/components/memo/MemoTreeView";
 
@@ -14,6 +14,17 @@ export default function Home() {
   const [memoTree, setMemoTree] = useState<MemoNode[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedBody, setSelectedBody] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("memoTree");
+    if (saved) {
+      setMemoTree(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("memoTree", JSON.stringify(memoTree));
+  }, [memoTree]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -141,7 +152,7 @@ export default function Home() {
           ))}
 
           {loading && (
-            <div className="mr-auto bg-gray-200 px-3 py-2 rounded">
+            <div className="mr-auto bg-gray-800 px-3 py-2 rounded">
               …
             </div>
           )}

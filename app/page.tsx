@@ -59,7 +59,7 @@ export default function Home() {
 
     setMemoTree((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), title, body: "", children: [] }
+      { id: crypto.randomUUID(), title, body: "", isOpen: false, children: [] }
     ]);
   };
 
@@ -74,7 +74,7 @@ export default function Home() {
             ...node,
             children: [
               ...node.children,
-              { id: crypto.randomUUID(), title, body: "", children: [] }
+              { id: crypto.randomUUID(), title, body: "", isOpen: false, children: [] }
             ]
           };
         }
@@ -84,6 +84,18 @@ export default function Home() {
     };
 
     setMemoTree((prev) => addRecursive(prev));
+  };
+
+  const toggleNode = (id: string) => {
+    const toggleRecursive = (nodes: MemoNode[]): MemoNode[] =>
+      nodes.map((node) => {
+        if (node.id === id) {
+          return { ...node, isOpen: !node.isOpen };
+        }
+        return { ...node, children: toggleRecursive(node.children) };
+      });
+
+    setMemoTree((prev) => toggleRecursive(prev));
   };
 
   const editNode = (nodeId: string) => {
@@ -191,6 +203,7 @@ export default function Home() {
           onAddChild={addChildNode}
           onEdit={editNode}
           onSelect={handleSelectNode}
+          onToggle={toggleNode}
         />
       </div>
       {selectedNode && (
